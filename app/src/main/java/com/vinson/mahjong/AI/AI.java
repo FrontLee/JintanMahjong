@@ -22,6 +22,7 @@ import com.vinson.mahjong.base.Waiting;
 import com.vinson.mahjong.base.log;
 import com.vinson.mahjong.jintan.utils;
 
+//TODO 1类牌的余数为0时，上和数应无效
 public class AI {
 
     public static LowestDemand getLowestDemandAfterDiscard(int[][] hand, AIBasis aiBasis) {
@@ -308,8 +309,8 @@ public class AI {
         return demandCount;
     }
 
-    public static Probability getProbability(int[][] hand, AIBasis aiBasis, int originDemand) {
-        if (originDemand == -1) {
+    public static Probability getProbability(int[][] hand, AIBasis aiBasis, int originWaiting) {
+        if (originWaiting == -1) {
             return new Probability(0, 0, 0);
         }
         Probability probability = new Probability();
@@ -321,13 +322,13 @@ public class AI {
             int suit = tile / 10;
             int tileIndex = tile % 10 - 1;
             hand[suit][tileIndex] += 1;
-            int demand = getWaiting(hand);
-            log.i("[概率]牌：" + tile + " -> 上和数：" + demand);
-            if (demand < originDemand) {
+            int waiting = getWaiting(hand);
+            log.i("[概率]牌：" + tile + " -> 上和数：" + waiting);
+            if (waiting < originWaiting) {
                 int remainCount = getRemaining(aiBasis, tile);
                 probability.highPriorityTileCount += remainCount;
                 log.i("[概率]1类牌确定" + tile);
-            } else if (demand == originDemand){
+            } else if (waiting == originWaiting){
                 secondaryCandidates.add(tile);
                 log.i("[概率]2类候选牌确定：" + tile);
             }
@@ -350,7 +351,7 @@ public class AI {
                 //打出牌张
                 hand[discardSuit][discardIndex]--;
                 //计算1类数量
-                int primary = getPrimaryCount(hand, aiBasis, originDemand);
+                int primary = getPrimaryCount(hand, aiBasis, originWaiting);
                 log.i("[概率]打出：" + discard + "后 -> 1类牌余量：" + primary);
                 //恢复牌张
                 hand[discardSuit][discardIndex]++;
@@ -369,7 +370,7 @@ public class AI {
     }
 
     //计算1类数量
-    private static int getPrimaryCount(int[][] hand, AIBasis aiBasis, int originDemand) {
+    private static int getPrimaryCount(int[][] hand, AIBasis aiBasis, int originWaiting) {
         int primary = 0;
         List<Integer> related = getRelatedTiles(hand);
         for (int j = 0; j < related.size(); j++) {
@@ -377,8 +378,8 @@ public class AI {
             int suit = tile / 10;
             int tileIndex = tile % 10 - 1;
             hand[suit][tileIndex] += 1;
-            int demand = getWaiting(hand);
-            if (demand < originDemand) {
+            int waiting = getWaiting(hand);
+            if (waiting < originWaiting) {
                 int remainCount = getRemaining(aiBasis, tile);
                 primary += remainCount;
             }
